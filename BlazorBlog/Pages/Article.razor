@@ -1,7 +1,10 @@
 ﻿@page "/article"
 @inject IArticleService ArticleService
+@using TinyMCE.Blazor
 
 <h3>Article</h3>
+
+
 
 @foreach (var article in Articles)
 {
@@ -18,7 +21,7 @@
         Description: @article.Description
     </div>
     <div>
-        Content: @article.Content
+        Content: @((MarkupString)article.Content)
     </div>
     <div>
         Author: @article.Author
@@ -29,10 +32,12 @@
     <div>
         Is Published: @article.IsPublished
     </div>
-    
+
 }
 
 @code {
+    
+
     List<ArticleDto> Articles = new List<ArticleDto>();
 
 

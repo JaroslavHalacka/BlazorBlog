@@ -14,7 +14,7 @@ namespace BlazorBlog.Services.ArticleService
             _mapper = mapper;
         }
 
-        
+
 
         public async Task<ServiceResponse<List<ArticleDto>>> GetAllArticle()
         {
@@ -26,7 +26,7 @@ namespace BlazorBlog.Services.ArticleService
                 var result = _mapper.Map<List<ArticleDto>>
                     (
                         await _context.Articles
-                        .Where(a=>a.IsPublished && !a.IsDeleted)        
+                        .Where(a => a.IsPublished && !a.IsDeleted)
                         .ToListAsync()
                     );
 
@@ -83,9 +83,9 @@ namespace BlazorBlog.Services.ArticleService
             ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
             try
             {
-                var result = _mapper.Map<ArticleDto>(await _context.Articles.FirstAsync(a=>a.Url == url));
+                var result = _mapper.Map<ArticleDto>(await _context.Articles.FirstAsync(a => a.Url == url));
 
-                if(result == null)
+                if (result == null)
                     throw new Exception("System error");
 
                 response.Data = result;
@@ -121,6 +121,53 @@ namespace BlazorBlog.Services.ArticleService
                 response.Message = ex.Message;
             }
 
+            return response;
+        }
+
+        public async Task<ServiceResponse<ArticleDto>> UpdateArticle(ArticleDto article)
+        {
+            ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
+            try
+            {
+                var result = await _context.Articles.FirstOrDefaultAsync(a => a.Id == article.Id);
+                if(result == null || article == null)
+                    throw new Exception("Article in database or ArticleDto is null");
+
+                result = _mapper.Map(article, result);
+
+                await _context.SaveChangesAsync();
+
+                response.Data = _mapper.Map<ArticleDto>(result);
+            }
+            catch (Exception ex)
+            {
+
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<ServiceResponse<ArticleDto>> CreatedArticle(ArticleDto article)
+        {
+            ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
+            try
+            {
+                var newArticle = _mapper.Map<Article>(article);
+                if (newArticle == null)
+                    throw new Exception("New Article is not exist");
+
+                _context.Articles.Add(newArticle);
+                await _context.SaveChangesAsync();
+
+                response.Data = _mapper.Map<ArticleDto>(newArticle);
+            }
+            catch (Exception ex)
+            {
+
+                response.Success = false;
+                response.Message = ex.Message;
+            }
             return response;
         }
     }

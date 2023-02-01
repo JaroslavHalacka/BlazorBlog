@@ -6,6 +6,9 @@
         Task<ServiceResponse<List<ArticleDto>>> AdminGetAllArticle();
         Task<ServiceResponse<ArticleDto>> GetArticleByUrl(string url);
         Task<ServiceResponse<ArticleDto>> GetArticleById(int id);
-        
+        Task<ServiceResponse<ArticleDto>> UpdateArticle(ArticleDto article);
+        Task<ServiceResponse<ArticleDto>> CreatedArticle(ArticleDto article);
+
+
     }
 }

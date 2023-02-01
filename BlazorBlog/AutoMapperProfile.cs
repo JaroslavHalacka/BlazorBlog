@@ -5,6 +5,7 @@
         public AutoMapperProfile()
         {
             CreateMap<Article, ArticleDto>();
+            CreateMap<ArticleDto, Article>();
         }
     }
 }

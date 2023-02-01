@@ -1,6 +1,8 @@
-﻿@page "/admin/editarticle/{id:int}"
+﻿@page "/admin/editarticle"
+@page "/admin/editarticle/{id:int}"
 @inject IArticleService ArticleService
-
+@inject NavigationManager NavigationManager
+@using TinyMCE.Blazor
 
 @if (loading)
 {
@@ -18,29 +20,28 @@ else
     {
         <h3>Create a new Acticle</h3>
     }
-<EditForm Model="article" OnValidSubmit="AddOrUpdateArticle">
-    <DataAnnotationsValidator></DataAnnotationsValidator>
-    <div class="mb-0">
-        <label for="title">Title</label>
-        <InputText id="title" @bind-Value="article.Title" class="form-control"></InputText>
-    </div>
-    <div class="mb-0">
-        <label for="url">Url</label>
-        <InputText id="url" @bind-Value="article.Url" class="form-control"></InputText>
-    </div>
-    <div class="mb-0">
-        <label for="description">Description</label>
-        <InputTextArea id="description" @bind-Value="article.Description" class="form-control"></InputTextArea>
-    </div>
-    <div class="mb-0">
-        <label for="content">Description</label>
-        <InputTextArea id="content" @bind-Value="article.Content" class="form-control"></InputTextArea>
-    </div>
+    <EditForm Model="article" OnValidSubmit="AddOrUpdateArticle">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <div class="mb-0">
+            <label for="title">Title</label>
+            <InputText id="title" @bind-Value="article.Title" class="form-control"></InputText>
+        </div>
+        <div class="mb-0">
+            <label for="url">Url</label>
+            <InputText id="url" @bind-Value="article.Url" class="form-control"></InputText>
+        </div>
+        <div class="mb-0">
+            <label for="description">Description</label>
+            <InputTextArea id="description" @bind-Value="article.Description" class="form-control"></InputTextArea>
+        </div>
+        <div>
+            <Editor Field="()=> article.Content" Conf="@_conf" @bind-Value="article.Content" />
+        </div>
 
 
-    <button type="submit" class="btn btn-primary float-end">@btnText</button>
-    <ValidationSummary></ValidationSummary>
-</EditForm>
+        <button type="submit" class="btn btn-primary float-end">@btnText</button>
+        <ValidationSummary></ValidationSummary>
+    </EditForm>
 }
 
 
@@ -52,6 +53,15 @@ else
     string msg = "Loading";
 
 
+
+    // TinyMCE variable
+
+    private Dictionary<string, object> _conf = new Dictionary<string, object> {
+    { "height", 500},
+    { "toolbar", "undo redo | a11ycheck casechange blocks | bold italic backcolor forecolor| alignleft aligncenter alignright alignjustify | bullist numlist checklist outdent indent | removeformat | advcode table help"},
+    { "plugins", "advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount"}
+  };
+
     ArticleDto article = new ArticleDto();
 
     protected override async Task OnParametersSetAsync()
@@ -59,7 +69,7 @@ else
         if (Id == 0)
         {
             article = new ArticleDto { IsNew = true };
-            btnText = "Create Product";
+            btnText = "Create Article";
         }
         else
         {
@@ -74,12 +84,32 @@ else
             {
                 msg = $"Article with Id {Id} does not exist!";
             }
-            loading = false;
+
         }
+        loading = false;
     }
 
-    void AddOrUpdateArticle()
+    async void AddOrUpdateArticle()
     {
-        
+        if (article.IsNew)
+        {
+            var createdArticle = await ArticleService.CreatedArticle(article);
+            if (createdArticle != null && createdArticle.Data != null)
+                article = createdArticle.Data;
+
+            NavigationManager.NavigateTo($"admin/editarticle/{article.Id}", true);
+        }
+        else
+        {
+            var updateArticle = await ArticleService.UpdateArticle(article);
+            if (updateArticle != null && updateArticle.Data != null)
+                article = updateArticle.Data;
+
+            NavigationManager.NavigateTo($"admin/editarticle/{article.Id}", true);
+        }
+
+
+
+
     }
 }
