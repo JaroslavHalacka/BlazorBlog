@@ -1,0 +1,63 @@
+﻿@page "/admin/articles"
+@inject IArticleService ArticleService
+@inject NavigationManager NavigationManager
+
+
+<button class="btn btn-primary float-end" @onclick="CreateArticle">
+    <i class="oi oi-pencil"></i> Add new Article
+</button>
+
+@foreach (var article in ListAdminArticles)
+{
+    <div>
+        Id: @article.Id
+    </div>
+    <div>
+        Url: @article.Url
+    </div>
+    <div>
+        Title :@article.Title
+    </div>
+    <div>
+        Description: @article.Description
+    </div>
+    <div>
+        Content: @article.Content
+    </div>
+    <div>
+        Author: @article.Author
+    </div>
+    <div>
+        DateCreated: @article.DateCreated
+    </div>
+    <div>
+        Is Published: @article.IsPublished
+    </div>
+    <div>
+        <button class="btn btn-primary" @onclick="(()=>EditArticle(article.Id))">
+            <i class="oi oi-pencil"></i> Edit Article
+        </button>
+    </div>
+}
+
+
+@code {
+    List<ArticleDto> ListAdminArticles = new List<ArticleDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await ArticleService.AdminGetAllArticle();
+        if (response != null && response.Data != null)
+            ListAdminArticles = response.Data;
+    }
+
+    void EditArticle(int articleId)
+    {
+        NavigationManager.NavigateTo($"admin/editarticle/{articleId}");
+    }
+
+    void CreateArticle()
+    {
+        NavigationManager.NavigateTo($"admin/editarticle");
+    }
+}

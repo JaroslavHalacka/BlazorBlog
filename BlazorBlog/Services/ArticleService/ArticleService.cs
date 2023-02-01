@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace BlazorBlog.Services.ArticleService
 {
@@ -13,6 +14,8 @@ namespace BlazorBlog.Services.ArticleService
             _mapper = mapper;
         }
 
+        
+
         public async Task<ServiceResponse<List<ArticleDto>>> GetAllArticle()
         {
 
@@ -20,7 +23,12 @@ namespace BlazorBlog.Services.ArticleService
 
             try
             {
-                var result = _mapper.Map<List<ArticleDto>>(await _context.Articles.ToListAsync());
+                var result = _mapper.Map<List<ArticleDto>>
+                    (
+                        await _context.Articles
+                        .Where(a=>a.IsPublished && !a.IsDeleted)        
+                        .ToListAsync()
+                    );
 
                 if (result == null)
                     throw new Exception("System error");
@@ -41,7 +49,35 @@ namespace BlazorBlog.Services.ArticleService
             return response;
 
         }
+        public async Task<ServiceResponse<List<ArticleDto>>> AdminGetAllArticle()
+        {
+            ServiceResponse<List<ArticleDto>> response = new ServiceResponse<List<ArticleDto>>();
 
+            try
+            {
+                var result = _mapper.Map<List<ArticleDto>>
+                    (
+                        await _context.Articles.ToListAsync()
+                    );
+
+                if (result == null)
+                    throw new Exception("System error");
+
+                if (result.Count == 0)
+                    throw new Exception("No article found");
+
+                response.Data = result;
+                response.Success = true;
+
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+
+            return response;
+        }
         public async Task<ServiceResponse<ArticleDto>> GetArticleByUrl(string url)
         {
             ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
@@ -50,6 +86,29 @@ namespace BlazorBlog.Services.ArticleService
                 var result = _mapper.Map<ArticleDto>(await _context.Articles.FirstAsync(a=>a.Url == url));
 
                 if(result == null)
+                    throw new Exception("System error");
+
+                response.Data = result;
+                response.Success = true;
+
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+
+            return response;
+        }
+
+        public async Task<ServiceResponse<ArticleDto>> GetArticleById(int id)
+        {
+            ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
+            try
+            {
+                var result = _mapper.Map<ArticleDto>(await _context.Articles.FindAsync(id));
+
+                if (result == null)
                     throw new Exception("System error");
 
                 response.Data = result;

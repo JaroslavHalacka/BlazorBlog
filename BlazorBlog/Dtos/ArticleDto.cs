@@ -15,5 +15,7 @@ namespace BlazorBlog.Dtos
         public DateTime DateCreated { get; set; } = DateTime.Now;
         public bool IsPublished { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
+        public bool IsNew { get; set; } = false;
+        public bool Editing { get; set; } = false;
     }
 }

@@ -1,0 +1,85 @@
+﻿@page "/admin/editarticle/{id:int}"
+@inject IArticleService ArticleService
+
+
+@if (loading)
+{
+    <span>@msg</span>
+}
+else
+{
+
+
+    @if (article.Editing)
+    {
+        <h3>Edit "@article.Title"</h3>
+    }
+    else
+    {
+        <h3>Create a new Acticle</h3>
+    }
+<EditForm Model="article" OnValidSubmit="AddOrUpdateArticle">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <div class="mb-0">
+        <label for="title">Title</label>
+        <InputText id="title" @bind-Value="article.Title" class="form-control"></InputText>
+    </div>
+    <div class="mb-0">
+        <label for="url">Url</label>
+        <InputText id="url" @bind-Value="article.Url" class="form-control"></InputText>
+    </div>
+    <div class="mb-0">
+        <label for="description">Description</label>
+        <InputTextArea id="description" @bind-Value="article.Description" class="form-control"></InputTextArea>
+    </div>
+    <div class="mb-0">
+        <label for="content">Description</label>
+        <InputTextArea id="content" @bind-Value="article.Content" class="form-control"></InputTextArea>
+    </div>
+
+
+    <button type="submit" class="btn btn-primary float-end">@btnText</button>
+    <ValidationSummary></ValidationSummary>
+</EditForm>
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    bool loading = true;
+    string btnText = "";
+    string msg = "Loading";
+
+
+    ArticleDto article = new ArticleDto();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            article = new ArticleDto { IsNew = true };
+            btnText = "Create Product";
+        }
+        else
+        {
+            var response = await ArticleService.GetArticleById(Id);
+            if (response != null && response.Data != null)
+            {
+                article = response.Data;
+                article.Editing = true;
+                btnText = "Update Product";
+            }
+            else
+            {
+                msg = $"Article with Id {Id} does not exist!";
+            }
+            loading = false;
+        }
+    }
+
+    void AddOrUpdateArticle()
+    {
+        
+    }
+}
