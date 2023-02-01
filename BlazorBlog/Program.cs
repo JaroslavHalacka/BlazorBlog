@@ -1,13 +1,25 @@
-using BlazorBlog.Data;
+global using BlazorBlog.Services.ArticleService;
+global using BlazorBlog.Models;
+global using BlazorBlog.Dtos;
+global using BlazorBlog.Data;
+global using AutoMapper;
+
+
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<DataContext>(options => { options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")); });
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+
+builder.Services.AddScoped<IArticleService, ArticleService>();
+
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 var app = builder.Build();
 

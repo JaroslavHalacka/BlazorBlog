@@ -1,0 +1,32 @@
+﻿@page "/singlearticle/{url}"
+@inject IArticleService ArticleService
+
+<h3>SingleArticle</h3>
+
+<div>
+    Id: @_article.Id
+</div>
+<div>
+    Title: @_article.Title
+</div>
+<div>
+    Description: @_article.Description
+</div>
+<div>
+    Content: @_article.Content
+</div>
+
+
+@code {
+    [Parameter]
+    public string Url { get; set; } = string.Empty;
+
+    ArticleDto _article = new ArticleDto();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await ArticleService.GetArticleByUrl(Url);
+        if (response != null && response.Data != null)
+            _article = response.Data;
+    }
+}

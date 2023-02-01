@@ -1,0 +1,45 @@
+﻿@page "/article"
+@inject IArticleService ArticleService
+
+<h3>Article</h3>
+
+@foreach (var article in Articles)
+{
+    <div>
+        Id: @article.Id
+    </div>
+    <div>
+        Url: @article.Url
+    </div>
+    <div>
+        <a href="/singlearticle/@article.Url">Title: @article.Title</a>
+    </div>
+    <div>
+        Description: @article.Description
+    </div>
+    <div>
+        Content: @article.Content
+    </div>
+    <div>
+        Author: @article.Author
+    </div>
+    <div>
+        DateCreated: @article.DateCreated
+    </div>
+    <div>
+        Is Published: @article.IsPublished
+    </div>
+    
+}
+
+@code {
+    List<ArticleDto> Articles = new List<ArticleDto>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await ArticleService.GetAllArticle();
+        if (response != null && response.Data != null)
+            Articles = response.Data;
+    }
+}
