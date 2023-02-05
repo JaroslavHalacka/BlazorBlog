@@ -66,3 +66,8 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+pre[class*=language-] {
+    
+    background: #e9e5e5;
+    padding:2em;
+}

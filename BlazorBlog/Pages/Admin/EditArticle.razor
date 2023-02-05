@@ -35,7 +35,8 @@ else
             <InputTextArea id="description" @bind-Value="article.Description" class="form-control"></InputTextArea>
         </div>
         <div>
-            <Editor Field="()=> article.Content" Conf="@_conf" @bind-Value="article.Content" />
+            <label for="content">Content</label>
+            <Editor Id="content" Field="()=> article.Content" Conf="@_conf" @bind-Value="article.Content" />
         </div>
 
 
@@ -58,8 +59,8 @@ else
 
     private Dictionary<string, object> _conf = new Dictionary<string, object> {
     { "height", 500},
-    { "toolbar", "undo redo | a11ycheck casechange blocks | bold italic backcolor forecolor| alignleft aligncenter alignright alignjustify | bullist numlist checklist outdent indent | removeformat | advcode table help"},
-    { "plugins", "advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount"}
+    { "toolbar", "undo redo | a11ycheck casechange blocks | bold italic backcolor forecolor| alignleft aligncenter alignright alignjustify | bullist numlist checklist outdent indent | removeformat | advcode table help | codesample"},
+    { "plugins", "advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount codesample"}
   };
 
     ArticleDto article = new ArticleDto();

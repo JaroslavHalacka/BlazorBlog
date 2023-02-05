@@ -18,11 +18,14 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<Article> Articles { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=DefaultConnection");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Article>(entity =>
         {
-            entity.ToTable("Article");
+            entity.HasKey(e => e.Id).HasName("PK_Article");
 
             entity.Property(e => e.DateCreated).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Title).HasMaxLength(50);

@@ -12,9 +12,11 @@
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
     <link href="BlazorBlog.styles.css" rel="stylesheet" />
-    <link href="TinyBlazor.styles.css" rel="stylesheet" />
+    @*<link href="css/prism.css" rel="stylesheet" />*@
+    
+    
     <link rel="icon" type="image/png" href="favicon.png" />
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    <component type="typeof(HeadOutlet)" render-mode="Server" />
 </head>
 <body>
     <component type="typeof(App)" render-mode="ServerPrerendered" />
@@ -31,6 +33,9 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+    @*<script src="js/prism.js"></script>*@
     <script src="_content/TinyMCE.Blazor/tinymce-blazor.js"></script>
+
+
 </body>
 </html>
