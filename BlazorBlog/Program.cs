@@ -1,4 +1,6 @@
 global using BlazorBlog.Services.ArticleService;
+global using BlazorBlog.Services.CategoryService;
+
 global using BlazorBlog.Models;
 global using BlazorBlog.Dtos;
 global using BlazorBlog.Data;
@@ -18,6 +20,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 builder.Services.AddScoped<IArticleService, ArticleService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 

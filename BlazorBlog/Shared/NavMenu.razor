@@ -1,66 +1,34 @@
 ﻿
-    <div class="top-row ps-3 navbar navbar-dark navbar-toggler-wrapper">
-        <div class="container-fluid">
-            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<div class="top-row ps-3 navbar navbar-dark navbar-toggler-wrapper">
+    <div class="container-fluid">
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <nav class="flex-nav">
+        <div class="nav-item px-2">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                Home
+            </NavLink>
         </div>
-    </div>
-
-    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-        <nav class="flex-nav">
-            <div class="nav-item px-2">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    Home
-                </NavLink>
-            </div>
-            <div class="nav-item px-2">
-                <NavLink class="nav-link" href="article" @onclick="()=>expandSubMenu= !expandSubMenu">
-                    Article
-                </NavLink>
-                @if (expandSubMenu)
-                {
-                    <div class="nav flex-column">
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="createproject">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> Zal.projektu
-                            </NavLink>
-                        </div>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="createprojectquickly">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> Zal.projektu rychle
-                            </NavLink>
-                        </div>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="createapi">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> Založení api
-                            </NavLink>
-                        </div>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="projectfirstdata">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> First Data
-                            </NavLink>
-                        </div>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="projectinvscode">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> Start v VS Code
-                            </NavLink>
-                        </div>
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="blazingchat">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> Blazing chat
-                            </NavLink>
-                        </div>
-                    </div>
-                }
-            </div>
-
-        </nav>
-    </div>
+        <div class="nav-item px-2">
+            <NavLink class="nav-link" href="article">
+                Articles
+            </NavLink>
+        </div>
+        <div class="nav-item px-2">
+            <NavLink class="nav-link" href="category">
+                Categories
+            </NavLink>
+        </div>
+    </nav>
+</div>
 
 @code {
     private bool collapseNavMenu = true;
-    private bool expandSubMenu = false;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 

@@ -1,0 +1,54 @@
+﻿@page "/admin/categories"
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+
+
+<button class="btn btn-primary float-end" @onclick="CreateArticle">
+    <i class="oi oi-pencil"></i> Add new Article
+</button>
+
+@foreach (var category in ListAdminCategories)
+{
+    <div>
+        Id: @category.Id
+    </div>
+    <div>
+        Name: @category.Name
+    </div>
+    <div>
+        Url :@category.Url
+    </div>
+    <div>
+        IsVisible: @category.IsVisible
+    </div>
+    <div>
+        IsDeleted: @category.IsDeleted
+    </div>
+    <div>
+        <button class="btn btn-primary" @onclick="(()=>EditCategory(category.Id))">
+            <i class="oi oi-pencil"></i> Edit Category
+        </button>
+    </div>
+
+}
+
+@code {
+    List<CategoryDto> ListAdminCategories = new List<CategoryDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await CategoryService.AdminGetAllCategories();
+        if (response != null && response.Data != null)
+            ListAdminCategories = response.Data;
+    }
+
+    void EditCategory(int categoryId)
+    {
+        NavigationManager.NavigateTo($"admin/editcategory/{categoryId}");
+    }
+
+    void CreateArticle()
+    {
+        NavigationManager.NavigateTo($"admin/editcategory");
+    }
+}

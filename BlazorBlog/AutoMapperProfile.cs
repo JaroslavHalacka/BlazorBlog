@@ -6,6 +6,9 @@
         {
             CreateMap<Article, ArticleDto>();
             CreateMap<ArticleDto, Article>();
+
+            CreateMap<Category, CategoryDto>();
+            CreateMap<CategoryDto, Category>();
         }
     }
 }

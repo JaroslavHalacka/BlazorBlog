@@ -22,4 +22,6 @@ public partial class Article
     public bool IsPublished { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public virtual ICollection<Category> Categories { get; } = new List<Category>();
 }

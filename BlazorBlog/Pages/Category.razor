@@ -1,0 +1,49 @@
+﻿@page "/category"
+@inject ICategoryService CategoryService
+
+<h3>Category</h3>
+
+@foreach (var category in Categories)
+{
+    <div>
+        Id: @category.Id
+    </div>
+    <div>
+        Name: @category.Name
+    </div>
+    <div>
+        Url: @category.Url
+    </div>
+    <div>
+        IsVisible: @category.IsVisible
+    </div>
+    <div>
+        IdDeleted: @category.IsDeleted
+    </div>
+
+}
+Message: @message;
+
+@code {
+    List<CategoryDto> Categories = new List<CategoryDto>();
+    private string message = "***";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await CategoryService.GetAllCategories();
+        if (response != null)
+        {
+            if (response.Data != null)
+            {
+                Categories = response.Data;
+
+            }
+            else if (response.Message != null)
+            {
+                message = response.Message;
+            }
+        }
+        
+    }
+
+}
