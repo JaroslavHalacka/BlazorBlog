@@ -23,5 +23,7 @@ public partial class Article
 
     public bool IsDeleted { get; set; }
 
+    public virtual ICollection<Image> Images { get; } = new List<Image>();
+
     public virtual ICollection<Category> Categories { get; } = new List<Category>();
 }

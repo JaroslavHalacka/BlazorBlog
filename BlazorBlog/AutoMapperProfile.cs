@@ -1,4 +1,6 @@
-﻿namespace BlazorBlog
+﻿using BlazorBlog.Models;
+
+namespace BlazorBlog
 {
     public class AutoMapperProfile :Profile
     {
@@ -9,6 +11,10 @@
 
             CreateMap<Category, CategoryDto>();
             CreateMap<CategoryDto, Category>();
+
+            CreateMap<UploadImageDto, Image>();
+            CreateMap<Image, UploadImageDto>();
+
         }
     }
 }

@@ -20,6 +20,8 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<Category> Categories { get; set; }
 
+    public virtual DbSet<Image> Images { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=DefaultConnection");
 
@@ -54,6 +56,18 @@ public partial class DataContext : DbContext
         {
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.Url).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<Image>(entity =>
+        {
+            entity.HasKey(e => new { e.ArticleId, e.NameImage });
+
+            entity.Property(e => e.NameImage).HasMaxLength(50);
+
+            entity.HasOne(d => d.Article).WithMany(p => p.Images)
+                .HasForeignKey(d => d.ArticleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Images_Articles");
         });
 
         OnModelCreatingPartial(modelBuilder);

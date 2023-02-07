@@ -1,0 +1,144 @@
+﻿@page "/admin/fileedit/{id:int}"
+@using System
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Logging
+@inject ILogger<FileEdit> Logger
+@inject IWebHostEnvironment Environment
+@inject IImageService ImageService
+
+<h3>FileEdit</h3>
+Naše id : @Id
+Message : @message
+
+
+<p>
+    <label>
+        Max file size:
+        <input type="number" @bind="maxFileSize" />
+    </label>
+</p>
+
+<p>
+    <label>
+        Max allowed files:
+        <input type="number" @bind="maxAllowedFiles" />
+    </label>
+</p>
+
+<p>
+    <label>
+        Upload up to @maxAllowedFiles of up to @maxFileSize bytes:
+        <InputFile OnChange="@LoadFiles" multiple />
+    </label>
+</p>
+
+@if (isLoading)
+{
+    <p>Progress: @string.Format("{0:P0}", progressPercent)</p>
+}
+else
+{
+    <ul>
+        @foreach (var file in uploadFilesInfo)
+        {
+            <li>
+                <ul>
+                    <li>Name: @file.FileName</li>
+                    <li>Last modified: @file.LastModified</li>
+                    <li>Size (bytes): @file.Size</li>
+                    <li>Content type: @file.ContentType</li>
+                    <li>Success: @file.Success</li>
+                    <li>Message: @file.Message</li>
+
+                </ul>
+            </li>
+        }
+    </ul>
+}
+
+@foreach (var image in imageByArticleId)
+{
+    <div>
+        <img class="img-article" src="image/@image.ArticleId/@image.NameImage" />
+        <span>Cesta: image/@image.ArticleId/@image.NameImage</span>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private string message = string.Empty;
+
+    private List<IBrowserFile> loadedFiles = new();
+
+    private List<UploadFilesInfo> uploadFilesInfo = new List<UploadFilesInfo>();
+
+    private List<UploadImageDto> imageByArticleId = new List<UploadImageDto>();
+
+    private long maxFileSize = 5000 * 5000;
+    private int maxAllowedFiles = 3;
+    private bool isLoading;
+    private decimal progressPercent;
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+        uploadFilesInfo.Clear();
+        loadedFiles.Clear();
+        progressPercent = 0;
+
+        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            try
+            {
+                //loadedFiles.Add(file);
+
+                var path = Path.Combine(Environment.ContentRootPath,
+                        "wwwroot", "image",
+                        Id.ToString());
+
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                path = Path.Combine(path, file.Name);
+
+                await using FileStream fs = new(path, FileMode.Create);
+                await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+                var response = await ImageService.AddUploadImage
+                    (
+                        new UploadImageDto
+                        {
+                            ArticleId = Id,
+                            NameImage = file.Name
+                        }
+                    );
+
+                uploadFilesInfo.Add(new UploadFilesInfo
+                {
+                    FileName = file.Name,
+                    LastModified = file.LastModified.ToString(),
+                    Size = file.Size.ToString(),
+                    ContentType = file.ContentType,
+                    Success = response.Success,
+                    Message = response.Message
+                });
+
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("File: {Filename} Error: {Error}",
+                    file.Name, ex.Message);
+            }
+        }
+        imageByArticleId= (await ImageService.GetListImageByArticleId(Id)).Data!;
+
+        isLoading = false;
+    }
+}
