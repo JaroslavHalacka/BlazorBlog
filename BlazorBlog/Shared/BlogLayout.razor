@@ -1,0 +1,20 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>AntNetBlog</PageTitle>
+
+<div class="page">
+    <TopMenu />
+    <OffCanvas />
+    <div class="main-body mt-5 pt-2 row border-end border-light">
+        <div class="menu col-2">
+            <SideMenu />
+        </div>
+        <div class="col">
+            <main>
+                <article class="content px-2">
+                    @Body
+                </article>
+            </main>
+        </div>
+    </div>
+</div>

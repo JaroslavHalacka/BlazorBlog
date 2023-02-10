@@ -14,8 +14,6 @@ namespace BlazorBlog.Services.ArticleService
             _mapper = mapper;
         }
 
-
-
         public async Task<ServiceResponse<List<ArticleDto>>> GetAllArticle()
         {
 

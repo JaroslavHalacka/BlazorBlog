@@ -1,0 +1,18 @@
+﻿.navbar {
+    background-image: linear-gradient(180deg, rgb(113, 113, 113), rgb(64, 64, 64) 70%);
+    
+}
+
+.container-page {
+    max-width: 1320px;
+    margin: auto;
+}
+
+.home-button {
+    white-space: nowrap;
+    margin-right: 10px;
+    transform: rotate(-5deg);
+    margin-left:1rem;
+}
+
+
