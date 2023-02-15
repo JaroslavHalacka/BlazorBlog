@@ -23,7 +23,7 @@
 
     ArticleDto _article = new ArticleDto();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         var response = await ArticleService.GetArticleByUrl(Url);
         if (response != null && response.Data != null)

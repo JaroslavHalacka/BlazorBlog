@@ -15,6 +15,9 @@ namespace BlazorBlog
             CreateMap<UploadImageDto, Image>();
             CreateMap<Image, UploadImageDto>();
 
+            CreateMap<Category, CategorySiteMenuDto>();
+            CreateMap<Article, ArticleSiteMenuDto>();
+
         }
     }
 }

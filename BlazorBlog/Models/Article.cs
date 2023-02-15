@@ -9,6 +9,8 @@ public partial class Article
 
     public string Url { get; set; } = null!;
 
+    public string NameForMenu { get; set; } = null!;
+
     public string Title { get; set; } = null!;
 
     public string Description { get; set; } = null!;

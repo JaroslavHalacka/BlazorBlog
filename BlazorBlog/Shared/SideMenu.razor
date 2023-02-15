@@ -1,32 +1,52 @@
-﻿
-    <div>
-        start
-        aasfdsfafasfasfsfdsfds
-        <p>
-            a
-        </p>
-        <p>
-            a
-        </p>
-        aasfdsfafasfasfsfdsfds
-        <p>
-            a
-        </p>
-        <p>
-            a
-        </p>
-        aasfdsfafasfasfsfdsfds
-        <p>
-            a
-        </p>
-        <p>
-            a
-        </p>
-        aasfdsfafasfasfsfdsfds
-        <p>
-            a
-        </p>
-        <p>
-            a
-        </p>
-    </div>
+﻿@inject ICategoryService CategoryService
+@implements IDisposable
+
+<nav>
+    @foreach (var category in CategoryService.ListCategorySiteMenuDtos)
+    {
+        <ul class="list-unstyled m-0 p-0">
+            @if (category.Articles.Count > 0)
+            {
+                <li class="pt-3">
+                    <strong>
+                        @category.Name
+                    </strong>
+                    <ul class="list-unstyled ms-2 fw-normal pb-1 small">
+                        @foreach (var article in category.Articles)
+                        {
+                            <li>
+                                <NavLink class="nav-link" href="@($"singlearticle/{article.Url}")">
+                                    @article.Title
+                                </NavLink>
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
+
+        </ul>
+    }
+
+</nav>
+
+@code{
+
+    //List<CategorySiteMenuDto> categorySiteMenu = new List<CategorySiteMenuDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+       await CategoryService.GetSiteMenuCategories();
+        //    var response = await CategoryService.GetSiteMenuCategories();
+        //    if (response != null && response.Data != null)
+        //        categorySiteMenu = response.Data;
+    }
+    protected override void OnInitialized()
+    {
+        CategoryService.CategorySiteMenuChange += StateHasChanged;
+    }
+    public void Dispose()
+    {
+        CategoryService.CategorySiteMenuChange -= StateHasChanged;
+    }
+
+}

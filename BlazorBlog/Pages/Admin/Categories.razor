@@ -1,54 +1,176 @@
 ﻿@page "/admin/categories"
 @inject ICategoryService CategoryService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
 
 
-<button class="btn btn-primary float-end" @onclick="CreateArticle">
-    <i class="oi oi-pencil"></i> Add new Article
-</button>
+<h3>Categories</h3>
+<br />
 
+
+<div class="header">
+    <div class="col">Name</div>
+    <div class="col">Url</div>
+    <div class="col">Visible</div>
+    <div class="col"></div>
+
+</div>
 @foreach (var category in ListAdminCategories)
 {
-    <div>
-        Id: @category.Id
-    </div>
-    <div>
-        Name: @category.Name
-    </div>
-    <div>
-        Url :@category.Url
-    </div>
-    <div>
-        IsVisible: @category.IsVisible
-    </div>
-    <div>
-        IsDeleted: @category.IsDeleted
-    </div>
-    <div>
-        <button class="btn btn-primary" @onclick="(()=>EditCategory(category.Id))">
-            <i class="oi oi-pencil"></i> Edit Category
-        </button>
-    </div>
 
+
+    @if (category.Editing)
+    {
+        <EditForm Model="editingCategory" OnSubmit="UpdateCategory">
+            <div class="row">
+                <div class="col">
+                    <InputText @bind-Value="editingCategory.Name" class="form-control"></InputText>
+                </div>
+                <div class="col">
+                    <InputText @bind-Value="editingCategory.Url" class="form-control"></InputText>
+                </div>
+                <div class="col col-visible">
+                    <InputCheckbox @bind-Value="editingCategory.IsVisible" style="transform: scale(2,2);"></InputCheckbox>
+                </div>
+                <div class="col">
+                    <button type="submit" class="btn btn-dark">
+                        <i class="oi oi-cloud-upload"></i>
+                    </button>
+                    <button class="btn btn-dark" @onclick="CancelEditing">
+                        <i class="oi oi-circle-x"></i>
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    }
+    else if (!category.IsDeleted)
+    {
+        <div class="row">
+            <div class="col">
+                @category.Name
+            </div>
+            <div class="col">
+                @category.Url
+            </div>
+            <div class="col col-visible">
+                <span>@(category.IsVisible ? "✔️" : "")</span>
+            </div>
+            <div class="col">
+                <button class="btn btn-dark" @onclick="(()=>EditCategory(category))">
+                    <i class="oi oi-pencil"></i>
+                </button>
+                <button class="btn btn-dark" @onclick="(()=>DeleteCategory(category.Id))">
+                    <i class="oi oi-trash"></i>
+                </button>
+            </div>
+        </div>
+    }
+}
+<br />
+<button class="btn btn-dark" @onclick="CreateNewCategory">
+    <i class="oi oi-plus"></i> Add new Category
+</button>
+<br />
+<hr />
+<h3>Deleted Category</h3>
+
+<div class="row">
+    <div class="col">Name</div>
+    <div class="col">Url</div>
+    <div class="col"></div>
+</div>
+<hr />
+@foreach (var category in ListAdminCategories)
+{
+    @if (category.IsDeleted)
+    {
+        <div class="row">
+            <div class="col">
+                @category.Name
+            </div>
+            <div class="col">
+                @category.Url
+            </div>
+            <div class="col">
+                <button class="btn btn-dark" @onclick="(()=>NoDelete(category.Id))">
+                    <i class="oi oi-media-skip-backward"></i>
+                </button> Back
+            </div>
+        </div>
+    }
 }
 
 @code {
     List<CategoryDto> ListAdminCategories = new List<CategoryDto>();
 
+    CategoryDto editingCategory = new CategoryDto();
+
+
     protected override async Task OnInitializedAsync()
     {
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+
         var response = await CategoryService.AdminGetAllCategories();
         if (response != null && response.Data != null)
             ListAdminCategories = response.Data;
     }
 
-    void EditCategory(int categoryId)
+    private void CreateNewCategory()
     {
-        NavigationManager.NavigateTo($"admin/editcategory/{categoryId}");
+        var newCategory = new CategoryDto { IsNew = true, Editing = true };
+        ListAdminCategories.Add(newCategory);
+        editingCategory = newCategory;
     }
 
-    void CreateArticle()
+    private void EditCategory(CategoryDto category)
     {
-        NavigationManager.NavigateTo($"admin/editcategory");
+        category.Editing = true;
+        editingCategory = category;
+    }
+
+    private async Task UpdateCategory()
+    {
+        if (editingCategory.IsNew)
+        {
+            var response = await CategoryService.AddCategory(editingCategory);
+            if (response != null && response.Data != null)
+                ListAdminCategories = response.Data;
+        }
+        else
+        {
+            var response = await CategoryService.UpdateCategory(editingCategory);
+            if (response != null && response.Data != null)
+                ListAdminCategories = response.Data;
+            await CategoryService.GetSiteMenuCategories();
+        }
+
+
+        editingCategory = new CategoryDto();
+    }
+
+    private async Task CancelEditing()
+    {
+        editingCategory = new CategoryDto();
+        var response = await CategoryService.AdminGetAllCategories();
+        if (response != null && response.Data != null)
+            ListAdminCategories = response.Data;
+    }
+
+    private async Task DeleteCategory(int id)
+    {
+        var response = await CategoryService.DeleteCategory(id);
+        if (response != null && response.Data != null)
+            ListAdminCategories = response.Data;
+        await CategoryService.GetSiteMenuCategories();
+    }
+
+    private async Task NoDelete(int id)
+    {
+        var response = await CategoryService.NoDelete(id);
+        if (response != null && response.Data != null)
+            ListAdminCategories = response.Data;
+        await CategoryService.GetSiteMenuCategories();
     }
 }

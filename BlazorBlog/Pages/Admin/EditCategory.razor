@@ -1,7 +1,9 @@
-﻿@page "/admin/editcategory"
+﻿@*@page "/admin/editcategory"
 @page "/admin/editcategory/{id:int}"
 @inject ICategoryService CategoryService
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
 
 @if (loading)
 {
@@ -19,27 +21,27 @@ else
     {
         <h3>Create a new Category</h3>
     }
-<EditForm Model="category" OnValidSubmit="AddOrUpdateCategory">
-    <DataAnnotationsValidator></DataAnnotationsValidator>
-    <div class="mb-0">
-        <label for="name">Name</label>
-        <InputText id="name" @bind-Value="category.Name" class="form-control"></InputText>
-    </div>
-    <div class="mb-0">
-        <label for="url">Url</label>
-        <InputText id="name" @bind-Value="category.Url" class="form-control"></InputText>
-    </div>
-    <div class="mb-0">
-        <label for="isvisible">IsVisible</label>
-        <InputCheckbox id="isvisible" @bind-Value="category.IsVisible" ></InputCheckbox>
-    </div>
-    <div class="mb-0">
-        <label for="isdeleted">IsDeleted</label>
-        <InputCheckbox id="isdeleted" @bind-Value="category.IsDeleted"></InputCheckbox>
-    </div>
-    <button type="submit" class="btn btn-primary float-end">@btnText</button>
-    <ValidationSummary></ValidationSummary>
-</EditForm>
+    <EditForm Model="category" OnValidSubmit="AddOrUpdateCategory">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <div class="mb-0">
+            <label for="name">Name</label>
+            <InputText id="name" @bind-Value="category.Name" class="form-control"></InputText>
+        </div>
+        <div class="mb-0">
+            <label for="url">Url</label>
+            <InputText id="name" @bind-Value="category.Url" class="form-control"></InputText>
+        </div>
+        <div class="mb-0">
+            <label for="isvisible">IsVisible</label>
+            <InputCheckbox id="isvisible" @bind-Value="category.IsVisible"></InputCheckbox>
+        </div>
+        <div class="mb-0">
+            <label for="isdeleted">IsDeleted</label>
+            <InputCheckbox id="isdeleted" @bind-Value="category.IsDeleted"></InputCheckbox>
+        </div>
+        <button type="submit" class="btn btn-primary float-end">@btnText</button>
+        <ValidationSummary></ValidationSummary>
+    </EditForm>
 }
 
 
@@ -52,6 +54,14 @@ else
     string msg = "Loading";
 
     CategoryDto category = new CategoryDto();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+    }
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -78,28 +88,28 @@ else
         loading = false;
     }
 
-    async void AddOrUpdateCategory()
-    {
-        if (category.IsNew)
-        {
-            var createdCategory = await CategoryService.CreateCategory(category);
-            if (createdCategory != null && createdCategory.Data != null)
-                category = createdCategory.Data;
+    //async void AddOrUpdateCategory()
+    //{
+    //    if (category.IsNew)
+    //    {
+    //        var createdCategory = await CategoryService.CreateCategory(category);
+    //        if (createdCategory != null && createdCategory.Data != null)
+    //            category = createdCategory.Data;
 
-            NavigationManager.NavigateTo($"admin/editcategory/{category.Id}", true);
-        }
-        else
-        {
-            var updateCategory = await CategoryService.UpdateCategory(category);
-            if (updateCategory != null && updateCategory.Data != null)
-                category = updateCategory.Data;
+    //        NavigationManager.NavigateTo($"admin/editcategory/{category.Id}", true);
+    //    }
+    //    else
+    //    {
+    //        var updateCategory = await CategoryService.UpdateCategory(category);
+    //        if (updateCategory != null && updateCategory.Data != null)
+    //            category = updateCategory.Data;
 
-            NavigationManager.NavigateTo($"admin/editcategory/{category.Id}", true);
-        }
-
-
+    //        NavigationManager.NavigateTo($"admin/editcategory/{category.Id}", true);
+    //    }
 
 
-    }
+
 
 }
+
+}*@

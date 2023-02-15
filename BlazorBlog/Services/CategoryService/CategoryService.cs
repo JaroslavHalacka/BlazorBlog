@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BlazorBlog.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlazorBlog.Services.CategoryService
 {
@@ -6,12 +7,17 @@ namespace BlazorBlog.Services.CategoryService
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
+        private readonly IDbContextFactory<DataContext> _dbContextFactory;
 
-        public CategoryService(DataContext context, IMapper mapper)
+        public CategoryService(DataContext context, IMapper mapper, IDbContextFactory<DataContext> dbContextFactory)
         {
             _context = context;
             _mapper = mapper;
+            _dbContextFactory = dbContextFactory;
         }
+
+        public event Action CategorySiteMenuChange;
+        public List<CategorySiteMenuDto> ListCategorySiteMenuDtos { get; set; } = new List<CategorySiteMenuDto>();
 
         public async Task<ServiceResponse<List<CategoryDto>>> GetAllCategories()
         {
@@ -90,9 +96,9 @@ namespace BlazorBlog.Services.CategoryService
             return response;
         }
 
-        public async Task<ServiceResponse<CategoryDto>> UpdateCategory(CategoryDto category)
+        public async Task<ServiceResponse<List<CategoryDto>>> UpdateCategory(CategoryDto category)
         {
-            ServiceResponse<CategoryDto> response = new ServiceResponse<CategoryDto>();
+            ServiceResponse<List<CategoryDto>> response = new ServiceResponse<List<CategoryDto>>();
             try
             {
                 var result = await _context.Categories.FirstOrDefaultAsync(a => a.Id == category.Id);
@@ -103,7 +109,7 @@ namespace BlazorBlog.Services.CategoryService
 
                 await _context.SaveChangesAsync();
 
-                response.Data = _mapper.Map<CategoryDto>(result);
+                response = await AdminGetAllCategories();
             }
             catch (Exception ex)
             {
@@ -114,27 +120,83 @@ namespace BlazorBlog.Services.CategoryService
             return response;
         }
 
-        public async Task<ServiceResponse<CategoryDto>> CreateCategory(CategoryDto category)
+
+
+        public async Task<ServiceResponse<List<CategoryDto>>> AddCategory(CategoryDto category)
         {
-            ServiceResponse<CategoryDto> response = new ServiceResponse<CategoryDto>();
-            try
+            category.Editing = category.IsNew = false;
+            var newCategory = _mapper.Map<Category>(category);
+            _context.Categories.Add(newCategory);
+            await _context.SaveChangesAsync();
+            return await AdminGetAllCategories();
+        }
+
+        public async Task<ServiceResponse<List<CategoryDto>>> DeleteCategory(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+
+            if (category == null)
             {
-                var newCategory = _mapper.Map<Category>(category);
-                if (newCategory == null)
-                    throw new Exception("New Category is not exist");
-
-                _context.Categories.Add(newCategory);
-                await _context.SaveChangesAsync();
-
-                response.Data = _mapper.Map<CategoryDto>(newCategory);
+                return new ServiceResponse<List<CategoryDto>>
+                {
+                    Success = false,
+                    Message = "Category not found."
+                };
             }
-            catch (Exception ex)
+
+            category.IsDeleted = true;
+            await _context.SaveChangesAsync();
+            return await AdminGetAllCategories();
+        }
+
+        public async Task<ServiceResponse<List<CategoryDto>>> NoDelete(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+
+            if (category == null)
             {
-
-                response.Success = false;
-                response.Message = ex.Message;
+                return new ServiceResponse<List<CategoryDto>>
+                {
+                    Success = false,
+                    Message = "Category not found."
+                };
             }
+
+            category.IsDeleted = false;
+            await _context.SaveChangesAsync();
+            return await AdminGetAllCategories();
+        }
+
+        public async Task<ServiceResponse<List<CategoryDto>>> GetCategoriesWitOutIdArticle(int articleId)
+        {
+            ServiceResponse<List<CategoryDto>> response = new ServiceResponse<List<CategoryDto>>();
+
+
+            var aaa = await _context.Categories
+                .Where(c => !c.Articles.Any(a => a.Id == articleId))
+                .ToListAsync();
+
+            response.Data = _mapper.Map<List<CategoryDto>>(aaa);
             return response;
         }
+
+        public async Task GetSiteMenuCategories()
+        {
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
+            var result = _mapper.Map<List<CategorySiteMenuDto>>
+            (
+                await dataContext.Categories
+                .Include(c => c.Articles)
+                .Where(c => c.IsVisible && !c.IsDeleted)
+                .ToListAsync()
+            );
+            ListCategorySiteMenuDtos = result;
+
+            CategorySiteMenuChange.Invoke();
+        }
+
     }
+
+
 }
+

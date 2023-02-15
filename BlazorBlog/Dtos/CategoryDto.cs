@@ -13,5 +13,6 @@
         public bool IsDeleted { get; set; } = false;
         public bool IsNew { get; set; } = false;
         public bool Editing { get; set; } = false;
+        
     }
 }

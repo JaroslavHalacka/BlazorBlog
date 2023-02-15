@@ -22,6 +22,8 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<Image> Images { get; set; }
 
+    public virtual DbSet<User> Users { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=DefaultConnection");
 
@@ -32,6 +34,7 @@ public partial class DataContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK_Article");
 
             entity.Property(e => e.DateCreated).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.NameForMenu).HasMaxLength(25);
             entity.Property(e => e.Title).HasMaxLength(50);
             entity.Property(e => e.Url).HasMaxLength(20);
 
@@ -41,14 +44,15 @@ public partial class DataContext : DbContext
                     r => r.HasOne<Category>().WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_ArticleCategories_Categories"),
+                        .HasConstraintName("FK_ArticleCategory_Categories"),
                     l => l.HasOne<Article>().WithMany()
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_ArticleCategories_Articles"),
+                        .HasConstraintName("FK_ArticleCategory_Articles"),
                     j =>
                     {
-                        j.HasKey("ArticleId", "CategoryId");
+                        j.HasKey("ArticleId", "CategoryId").HasName("PK_ArticleCategories");
+                        j.ToTable("ArticleCategory");
                     });
         });
 
@@ -68,6 +72,11 @@ public partial class DataContext : DbContext
                 .HasForeignKey(d => d.ArticleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Images_Articles");
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(e => e.Email).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);

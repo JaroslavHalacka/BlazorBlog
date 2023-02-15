@@ -1,6 +1,7 @@
 global using BlazorBlog.Services.ArticleService;
 global using BlazorBlog.Services.CategoryService;
 global using BlazorBlog.Services.ImageService;
+global using BlazorBlog.Services.AuthService;
 
 global using BlazorBlog.Models;
 global using BlazorBlog.Dtos;
@@ -11,18 +12,29 @@ global using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<DataContext>(options => { options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")); });
+//builder.Services.AddDbContext<DataContext>(options => { options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")); });
 
+
+builder.Services.AddDbContextFactory<DataContext>(options => { options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")); });
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddScoped<IArticleService, ArticleService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddOptions();
+builder.Services.AddAuthenticationCore();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
@@ -42,6 +54,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

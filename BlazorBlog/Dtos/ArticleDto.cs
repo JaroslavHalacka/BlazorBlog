@@ -7,6 +7,7 @@ namespace BlazorBlog.Dtos
         public int Id { get; set; }
         [Required, StringLength(20, ErrorMessage = "Please use only 20 characters.")]
         public string Url { get; set; } = string.Empty;
+        public string NameForMenu { get; set; } = null!;
         [Required, StringLength(50, ErrorMessage = "Please use only 50 characters.")]
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -17,5 +18,6 @@ namespace BlazorBlog.Dtos
         public bool IsDeleted { get; set; } = false;
         public bool IsNew { get; set; } = false;
         public bool Editing { get; set; } = false;
+        public virtual List<CategoryDto> Categories { get; } = new List<CategoryDto>();
     }
 }

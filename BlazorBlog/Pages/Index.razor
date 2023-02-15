@@ -1,5 +1,8 @@
 ﻿@page "/"
+@page "/search"
+@page "/search/{searchText}"
 @inject IArticleService ArticleService
+@inject ICategoryService CategoryService
 
 
 
@@ -7,7 +10,7 @@
 {
     <div class="card mb-2">
         <div class="card-body">
-            <a href="@article.Url" class="link-dark"><h5 class="card-title">@article.Title</h5></a>
+            <a href="/singlearticle/@article.Url" class="link-dark"><h5 class="card-title">@article.Title</h5></a>
             <small>@article.DateCreated</small>
             <p>
                 @article.Description
@@ -21,14 +24,33 @@
 
 
 @code{
+    [Parameter]
+    public string? SearchText { get; set; } = null;
 
     List<ArticleDto> Articles = new List<ArticleDto>();
 
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await ArticleService.GetAllArticle();
-        if (response != null && response.Data != null)
+        //await ArticleService.GetArticles();
+        //await CategoryService.GetSiteMenuCategories();
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (SearchText != null)
+        {
+            var response = await ArticleService.SearchArticles(SearchText);
+            if (response != null && response.Data != null)
+                Articles = response.Data;
+        }
+        else
+        {
+            var response = await ArticleService.GetAllArticle();
+            if (response != null && response.Data != null) { }
             Articles = response.Data;
+        }
+
     }
 }

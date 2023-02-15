@@ -1,7 +1,19 @@
 ﻿@page "/admin/editarticle"
 @page "/admin/editarticle/{id:int}"
+@using System
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Logging
 @inject IArticleService ArticleService
+@inject ICategoryService CategoryService
+@inject ILogger<FileEdit> Logger
+@inject IWebHostEnvironment Environment
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IImageService ImageService
+@attribute [Authorize]
+
+
 @using TinyMCE.Blazor
 
 @if (loading)
@@ -20,31 +32,136 @@ else
     {
         <h3>Create a new Acticle</h3>
     }
-    <EditForm Model="article" OnValidSubmit="AddOrUpdateArticle">
-        <DataAnnotationsValidator></DataAnnotationsValidator>
-        <div class="mb-0">
-            <label for="title">Title</label>
-            <InputText id="title" @bind-Value="article.Title" class="form-control"></InputText>
-        </div>
-        <div class="mb-0">
-            <label for="url">Url</label>
-            <InputText id="url" @bind-Value="article.Url" class="form-control"></InputText>
-        </div>
-        <div class="mb-0">
-            <label for="description">Description</label>
-            <InputTextArea id="description" @bind-Value="article.Description" class="form-control"></InputTextArea>
-        </div>
-        <div>
-            <label for="content">Content</label>
-            <Editor Id="content" Field="()=> article.Content" Conf="@_conf" @bind-Value="article.Content" />
-        </div>
 
 
-        <button type="submit" class="btn btn-primary float-end">@btnText</button>
-        <ValidationSummary></ValidationSummary>
-    </EditForm>
+
+<EditForm Model="article" OnValidSubmit="AddOrUpdateArticle">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+
+    <div class="mb-0">
+        <h5>Id : @article.Id</h5>
+    </div>
+    <div class="my-1">
+        IsPublished: <InputCheckbox @bind-Value="article.IsPublished" style="transform: scale(2,2);" class="ms-2"></InputCheckbox>
+    </div>
+    <div class="my-1">
+        Is Deleted: <InputCheckbox @bind-Value="article.IsDeleted" style="transform: scale(2,2);" class="ms-2"></InputCheckbox>
+    </div>
+    <div class="mb-0">
+        <label for="title">Title</label>
+        <InputText id="title" @bind-Value="article.Title" class="form-control"></InputText>
+    </div>
+    <div class="mb-0">
+        <label for="url">Name For Menu</label>
+        <InputText id="url" @bind-Value="article.NameForMenu" class="form-control"></InputText>
+    </div>
+    <div class="mb-0">
+        <label for="url">Url</label>
+        <InputText id="url" @bind-Value="article.Url" class="form-control"></InputText>
+    </div>
+    <hr />
+    <div class="my-3">
+        <h5>Categorie</h5>
+        @foreach (var category in article.Categories)
+        {
+            <div class="d-flex">
+                <div class=" form-control w-50 me-2">
+                    <span>
+                        @category.Name
+                    </span>
+
+
+                </div>
+                <button class="btn btn-dark" @onclick="(()=>DeleteCategory(category.Id))">
+                    <i class="oi oi-trash"></i>
+                </button>
+            </div>
+        }
+
+        <br />
+        <div class="mb-0 d-flex">
+            <InputSelect id="possible-categories" @bind-Value="insertCategoryId" class="form-control w-50 me-2">
+                <option value="0" disabled selected hidden>Possible categories...</option>
+                @foreach (var category in categoryNotContainArticle)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </InputSelect>
+            <button type="button" class="btn btn-dark" @onclick="InsertPossibleCattegory">
+                Insert
+            </button>
+        </div>
+    </div>
+    <hr />
+
+    <div class="mb-0">
+        <label for="description">Description</label>
+        <InputTextArea id="description" @bind-Value="article.Description" class="form-control"></InputTextArea>
+    </div>
+    <div>
+        <label for="content">Content</label>
+        <Editor Id="content" Field="()=> article.Content" Conf="@_conf" @bind-Value="article.Content" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary float-end">@btnText</button>
+    <ValidationSummary></ValidationSummary>
+</EditForm>
 }
-<a href="/admin/fileedit/@Id">Přidat nebo upravit Image</a>
+<div class="mt-5">
+    <h1>Images</h1>
+    
+    <p>
+        <label>
+            Upload up to @maxAllowedFiles of up to @maxFileSize bytes:
+            <InputFile OnChange="@LoadFiles" multiple />
+        </label>
+    </p>
+
+    @*@if (isLoading)
+    {
+        <p>Progress: @string.Format("{0:P0}", progressPercent)</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var file in uploadFilesInfo)
+            {
+                <li>
+                    <ul>
+                        <li>Name: @file.FileName</li>
+                        <li>Last modified: @file.LastModified</li>
+                        <li>Size (bytes): @file.Size</li>
+                        <li>Content type: @file.ContentType</li>
+                        <li>Success: @file.Success</li>
+                        <li>Message: @file.Message</li>
+
+                    </ul>
+                </li>
+            }
+        </ul>
+    }*@
+
+
+
+
+    @foreach (var image in imageByArticleId)
+    {
+
+        <div class="card" style="width: 18rem;">
+            <img src="image/@image.ArticleId/@image.NameImage" class="card-img-top" alt="@image.NameImage">
+            <div class="card-body">
+                <p class="card-text">Cesta: image/@image.ArticleId/@image.NameImage</p>
+            </div>
+            <button class="btn btn-dark" @onclick="(()=>DeleteImage(image.NameImage))">
+                <i class="oi oi-trash"></i>
+            </button>
+        </div>
+
+
+    }
+</div>
+
 
 @code {
     [Parameter]
@@ -52,8 +169,29 @@ else
     bool loading = true;
     string btnText = "";
     string msg = "Loading";
+    ArticleDto article = new ArticleDto();
 
 
+    // Images
+    private string message = string.Empty;
+
+    private List<IBrowserFile> loadedFiles = new();
+
+    private List<UploadFilesInfo> uploadFilesInfo = new List<UploadFilesInfo>();
+
+    private List<UploadImageDto> imageByArticleId = new List<UploadImageDto>();
+
+    private long maxFileSize = 5000 * 5000;
+    private int maxAllowedFiles = 3;
+    private bool isLoading;
+    private decimal progressPercent;
+
+
+
+
+
+    List<CategoryDto> categoryNotContainArticle = new List<CategoryDto>();
+    private int insertCategoryId { get; set; } = 0;
 
     // TinyMCE variable
 
@@ -63,7 +201,19 @@ else
     { "plugins", "advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount codesample"}
   };
 
-    ArticleDto article = new ArticleDto();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var cwoia = await CategoryService.GetCategoriesWitOutIdArticle(Id);
+        categoryNotContainArticle = cwoia.Data;
+
+        var listImages = await ImageService.GetListImageByArticleId(Id);
+        if (listImages.Success)
+            imageByArticleId = listImages.Data;
+
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -108,9 +258,107 @@ else
 
             NavigationManager.NavigateTo($"admin/editarticle/{article.Id}", true);
         }
+    }
+
+    private async Task InsertPossibleCattegory()
+    {
+        if (insertCategoryId != 0)
+        {
+            var response = await ArticleService.InsertPossibleCategory(insertCategoryId, Id);
+            article = response.Data;
+            var cwoia = await CategoryService.GetCategoriesWitOutIdArticle(Id);
+            categoryNotContainArticle = cwoia.Data;
+            insertCategoryId = 0;
+            await CategoryService.GetSiteMenuCategories();
+        }
+    }
+
+    private async Task DeleteCategory(int idCategory)
+    {
+
+        var response = await ArticleService.RemovePossibleCategory(idCategory, Id);
+        article = response.Data;
+        await CategoryService.GetSiteMenuCategories();
 
 
+    }
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+        uploadFilesInfo.Clear();
+        loadedFiles.Clear();
+        progressPercent = 0;
+
+        foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        {
+            try
+            {
+                //loadedFiles.Add(file);
+
+                var path = Path.Combine(Environment.ContentRootPath,
+                        "wwwroot", "image",
+                        Id.ToString());
+
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                path = Path.Combine(path, file.Name);
+
+                await using FileStream fs = new(path, FileMode.Create);
+                await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+                var response = await ImageService.AddUploadImage
+                    (
+                        new UploadImageDto
+                        {
+                            ArticleId = Id,
+                            NameImage = file.Name
+                        }
+                    );
+
+                uploadFilesInfo.Add(new UploadFilesInfo
+                {
+                    FileName = file.Name,
+                    LastModified = file.LastModified.ToString(),
+                    Size = file.Size.ToString(),
+                    ContentType = file.ContentType,
+                    Success = response.Success,
+                    Message = response.Message
+                });
 
 
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("File: {Filename} Error: {Error}",
+                    file.Name, ex.Message);
+            }
+        }
+        imageByArticleId = (await ImageService.GetListImageByArticleId(Id)).Data!;
+
+        isLoading = false;
+    }
+
+    private async Task DeleteImage(string imageName)
+    {
+        var path = Path.Combine(Environment.ContentRootPath,
+                        "wwwroot", "image",
+                        Id.ToString(), imageName);
+
+        var response = await ImageService.DeleteImage(Id, imageName, path);
+
+        message = response.Message;
+        var listImages = await ImageService.GetListImageByArticleId(Id);
+        if (listImages.Data == null)
+        {
+            imageByArticleId = new List<UploadImageDto>();
+        }
+        else
+        {
+            imageByArticleId = listImages.Data;
+        }
     }
 }

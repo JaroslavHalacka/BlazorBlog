@@ -1,4 +1,6 @@
-﻿@inject NavigationManager NavigationManager 
+﻿@inject NavigationManager NavigationManager
+@inject IArticleService ArticleService 
+
 
 <nav class="navbar navbar-dark navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-page container-fluid">
@@ -8,30 +10,34 @@
         <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
             <div class="navbar-nav me-auto mb-2 mb-lg-0">
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="createproject">
+                    <NavLink class="nav-link" href="https://learn.microsoft.com/en-us/aspnet/core/blazor/?view=aspnetcore-7.0" target="blank">
                         <span class="oi oi-list-rich" aria-hidden="true"></span> C#
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="createprojectquickly">
-                        <span class="oi oi-list-rich" aria-hidden="true"></span> Html
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="createapi">
-                        <span class="oi oi-list-rich" aria-hidden="true"></span> JavaScrypt
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="projectfirstdata">
+                    <NavLink class="nav-link" href="https://getbootstrap.com/docs/5.3/getting-started/introduction/" target="blank">
                         <span class="oi oi-list-rich" aria-hidden="true"></span> Bootstrap
                     </NavLink>
                 </div>
             </div>
             <UserButton />
             <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-light">
+                <input @bind-value="searchText"
+                       @bind-value:event="oninput"
+                       type="search"
+                       list="products"
+                       @onkeyup="HandleSearch"
+                       class="form-control"
+                       placeholder="Search ..."
+                       @ref="searchInput" />
+                <datalist id="products">
+                    @foreach (var suggestion in suggestions)
+                    {
+                        <option>@suggestion</option>
+                    }
+                </datalist>
+                @*<input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">*@
+                <button class="btn btn-light" type="button" @onclick="SearchProduct">
                     <span class="oi oi-magnifying-glass"></span>
                 </button>
             </form>
@@ -44,8 +50,45 @@
 </nav>
 
 @code{
+    private string searchText = string.Empty;
+    private List<string> suggestions = new List<string>();
+
+    protected ElementReference searchInput;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await searchInput.FocusAsync();
+        }
+    }
+
+    public void SearchProduct()
+    {
+        
+            NavigationManager.NavigateTo($"search/{searchText}");
+
+        
+    }
+
+    public async Task HandleSearch(KeyboardEventArgs args)
+    {
+        if (args.Key == null || args.Key.Equals("Enter"))
+        {
+            SearchProduct();
+        }
+        else if (searchText.Length > 1)
+        {
+            var response = await ArticleService.GetArticleSearchSuggestions(searchText);
+            suggestions = response.Data;
+        }
+
+    }
+
     private void GoToHome()
     {
         NavigationManager.NavigateTo("");
     }
+
+
 }

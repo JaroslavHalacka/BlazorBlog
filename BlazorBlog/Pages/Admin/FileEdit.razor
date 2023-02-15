@@ -6,6 +6,8 @@
 @inject ILogger<FileEdit> Logger
 @inject IWebHostEnvironment Environment
 @inject IImageService ImageService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
 
 <h3>FileEdit</h3>
 Naše id : @Id
@@ -83,6 +85,13 @@ else
     private bool isLoading;
     private decimal progressPercent;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+    }
+
+
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
         isLoading = true;
@@ -137,7 +146,7 @@ else
                     file.Name, ex.Message);
             }
         }
-        imageByArticleId= (await ImageService.GetListImageByArticleId(Id)).Data!;
+        imageByArticleId = (await ImageService.GetListImageByArticleId(Id)).Data!;
 
         isLoading = false;
     }
