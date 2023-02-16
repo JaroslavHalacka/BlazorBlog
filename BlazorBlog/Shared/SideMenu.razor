@@ -16,7 +16,7 @@
                         {
                             <li>
                                 <NavLink class="nav-link" href="@($"singlearticle/{article.Url}")">
-                                    @article.Title
+                                    @article.NameForMenu
                                 </NavLink>
                             </li>
                         }
@@ -35,13 +35,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-       await CategoryService.GetSiteMenuCategories();
+        
         //    var response = await CategoryService.GetSiteMenuCategories();
         //    if (response != null && response.Data != null)
         //        categorySiteMenu = response.Data;
     }
     protected override void OnInitialized()
     {
+        CategoryService.GetSiteMenuCategories();
         CategoryService.CategorySiteMenuChange += StateHasChanged;
     }
     public void Dispose()

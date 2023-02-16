@@ -24,9 +24,10 @@ namespace BlazorBlog.Services.CategoryService
             ServiceResponse<List<CategoryDto>> response = new ServiceResponse<List<CategoryDto>>();
             try
             {
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
                 var result = _mapper.Map<List<CategoryDto>>
                     (
-                        await _context.Categories
+                        await dataContext.Categories
                         .Where(c => c.IsVisible && !c.IsDeleted)
                         .ToListAsync()
                     );
@@ -53,9 +54,10 @@ namespace BlazorBlog.Services.CategoryService
             ServiceResponse<List<CategoryDto>> response = new ServiceResponse<List<CategoryDto>>();
             try
             {
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
                 var result = _mapper.Map<List<CategoryDto>>
                     (
-                        await _context.Categories.ToListAsync()
+                        await dataContext.Categories.ToListAsync()
                     );
                 if (result == null)
                     throw new Exception("System error");
@@ -78,7 +80,8 @@ namespace BlazorBlog.Services.CategoryService
             ServiceResponse<CategoryDto> response = new ServiceResponse<CategoryDto>();
             try
             {
-                var result = _mapper.Map<CategoryDto>(await _context.Categories.FindAsync(id));
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
+                var result = _mapper.Map<CategoryDto>(await dataContext.Categories.FindAsync(id));
 
                 if (result == null)
                     throw new Exception("System error");
@@ -101,13 +104,14 @@ namespace BlazorBlog.Services.CategoryService
             ServiceResponse<List<CategoryDto>> response = new ServiceResponse<List<CategoryDto>>();
             try
             {
-                var result = await _context.Categories.FirstOrDefaultAsync(a => a.Id == category.Id);
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
+                var result = await dataContext.Categories.FirstOrDefaultAsync(a => a.Id == category.Id);
                 if (result == null || category == null)
                     throw new Exception("Category in database or Category is null");
 
                 result = _mapper.Map(category, result);
 
-                await _context.SaveChangesAsync();
+                await dataContext.SaveChangesAsync();
 
                 response = await AdminGetAllCategories();
             }
@@ -124,16 +128,18 @@ namespace BlazorBlog.Services.CategoryService
 
         public async Task<ServiceResponse<List<CategoryDto>>> AddCategory(CategoryDto category)
         {
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
             category.Editing = category.IsNew = false;
             var newCategory = _mapper.Map<Category>(category);
-            _context.Categories.Add(newCategory);
-            await _context.SaveChangesAsync();
+            dataContext.Categories.Add(newCategory);
+            await dataContext.SaveChangesAsync();
             return await AdminGetAllCategories();
         }
 
         public async Task<ServiceResponse<List<CategoryDto>>> DeleteCategory(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
+            var category = await dataContext.Categories.FindAsync(id);
 
             if (category == null)
             {
@@ -145,13 +151,14 @@ namespace BlazorBlog.Services.CategoryService
             }
 
             category.IsDeleted = true;
-            await _context.SaveChangesAsync();
+            await dataContext.SaveChangesAsync();
             return await AdminGetAllCategories();
         }
 
         public async Task<ServiceResponse<List<CategoryDto>>> NoDelete(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
+            var category = await dataContext.Categories.FindAsync(id);
 
             if (category == null)
             {
@@ -163,16 +170,16 @@ namespace BlazorBlog.Services.CategoryService
             }
 
             category.IsDeleted = false;
-            await _context.SaveChangesAsync();
+            await dataContext.SaveChangesAsync();
             return await AdminGetAllCategories();
         }
 
         public async Task<ServiceResponse<List<CategoryDto>>> GetCategoriesWitOutIdArticle(int articleId)
         {
             ServiceResponse<List<CategoryDto>> response = new ServiceResponse<List<CategoryDto>>();
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
 
-
-            var aaa = await _context.Categories
+            var aaa = await dataContext.Categories
                 .Where(c => !c.Articles.Any(a => a.Id == articleId))
                 .ToListAsync();
 

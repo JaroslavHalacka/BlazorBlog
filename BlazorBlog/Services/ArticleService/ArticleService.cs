@@ -5,15 +5,15 @@ namespace BlazorBlog.Services.ArticleService
 {
     public class ArticleService : IArticleService
     {
-        private readonly DataContext _context;
+        
         private readonly IMapper _mapper;
         private readonly IDbContextFactory<DataContext> _dbContextFactory;
 
         public List<ArticleDto> AllArticleDto { get; set; } = new List<ArticleDto>();
 
-        public ArticleService(DataContext context, IMapper mapper, IDbContextFactory<DataContext> dbContextFactory)
+        public ArticleService(IMapper mapper, IDbContextFactory<DataContext> dbContextFactory)
         {
-            _context = context;
+            
             _mapper = mapper;
             _dbContextFactory = dbContextFactory;
         }
@@ -26,9 +26,11 @@ namespace BlazorBlog.Services.ArticleService
 
             try
             {
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
                 var result = _mapper.Map<List<ArticleDto>>
                     (
-                        await _context.Articles
+                        await dataContext.Articles
                         .Where(a => a.IsPublished && !a.IsDeleted)
                         .ToListAsync()
                     );
@@ -58,9 +60,11 @@ namespace BlazorBlog.Services.ArticleService
 
             try
             {
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
                 var result = _mapper.Map<List<ArticleDto>>
                     (
-                        await _context.Articles.ToListAsync()
+                        await dataContext.Articles.ToListAsync()
                     );
 
                 if (result == null)
@@ -86,7 +90,9 @@ namespace BlazorBlog.Services.ArticleService
             ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
             try
             {
-                var result = _mapper.Map<ArticleDto>(await _context.Articles.FirstAsync(a => a.Url == url));
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
+                var result = _mapper.Map<ArticleDto>(await dataContext.Articles.FirstAsync(a => a.Url == url));
 
                 if (result == null)
                     throw new Exception("System error");
@@ -138,7 +144,9 @@ namespace BlazorBlog.Services.ArticleService
             ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
             try
             {
-                var result = await _context.Articles.FirstOrDefaultAsync(a => a.Id == article.Id);
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
+                var result = await dataContext.Articles.FirstOrDefaultAsync(a => a.Id == article.Id);
                 if (result == null || article == null)
                     throw new Exception("Article in database or ArticleDto is null");
 
@@ -150,7 +158,7 @@ namespace BlazorBlog.Services.ArticleService
                 result.IsPublished= article.IsPublished;
                 result.IsDeleted= article.IsDeleted;
 
-                await _context.SaveChangesAsync();
+                await dataContext.SaveChangesAsync();
 
                 response = await GetArticleById(article.Id);
             }
@@ -168,12 +176,14 @@ namespace BlazorBlog.Services.ArticleService
             ServiceResponse<ArticleDto> response = new ServiceResponse<ArticleDto>();
             try
             {
+                using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
                 var newArticle = _mapper.Map<Article>(article);
                 if (newArticle == null)
                     throw new Exception("New Article is not exist");
 
-                _context.Articles.Add(newArticle);
-                await _context.SaveChangesAsync();
+                dataContext.Articles.Add(newArticle);
+                await dataContext.SaveChangesAsync();
 
                 response.Data = _mapper.Map<ArticleDto>(newArticle);
             }
@@ -187,15 +197,17 @@ namespace BlazorBlog.Services.ArticleService
         }
         public async Task<ServiceResponse<ArticleDto>> InsertPossibleCategory(int categoryId, int idArticle)
         {
-            var category = await _context.Categories.FindAsync(categoryId);
-            var article = await _context.Articles
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
+            var category = await dataContext.Categories.FindAsync(categoryId);
+            var article = await dataContext.Articles
                 .Include(a => a.Categories)
                 .FirstOrDefaultAsync(a => a.Id == idArticle);
 
             article.Categories.Add(category);
-            await _context.SaveChangesAsync();
+            await dataContext.SaveChangesAsync();
 
-            var response = await _context.Articles
+            var response = await dataContext.Articles
                 .Include(a => a.Categories)
                 .FirstOrDefaultAsync(a => a.Id == idArticle);
 
@@ -204,15 +216,17 @@ namespace BlazorBlog.Services.ArticleService
         }
         public async Task<ServiceResponse<ArticleDto>> RemovePossibleCategory(int categoryId, int idArticle)
         {
-            var category = await _context.Categories.FindAsync(categoryId);
-            var article = await _context.Articles
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
+            var category = await dataContext.Categories.FindAsync(categoryId);
+            var article = await dataContext.Articles
                 .Include(a => a.Categories)
                 .FirstOrDefaultAsync(a => a.Id == idArticle);
 
             article.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+            await dataContext.SaveChangesAsync();
 
-            var response = await _context.Articles
+            var response = await dataContext.Articles
                 .Include(a => a.Categories)
                 .FirstOrDefaultAsync(a => a.Id == idArticle);
 
@@ -251,7 +265,9 @@ namespace BlazorBlog.Services.ArticleService
 
         private async Task<List<Article>> GetArticlesBySearchText(string searchText)
         {
-            return await _context.Articles
+            using DataContext dataContext = _dbContextFactory.CreateDbContext();
+
+            return await dataContext.Articles
                                     .Where(a => a.Title.ToLower().Contains(searchText.ToLower()) ||
                                             a.Description.ToLower().Contains(searchText.ToLower()) ||
                                             a.Content.ToLower().Contains(searchText.ToLower()) &&
