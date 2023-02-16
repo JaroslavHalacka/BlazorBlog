@@ -1,0 +1,9 @@
+﻿.bg-offcanvas {
+    background-image: linear-gradient(180deg, rgb(113, 113, 113), rgb(235, 235, 235) 5%);
+}
+.home-button {
+    white-space: nowrap;
+    margin-right: 10px;
+    transform: rotate(-5deg);
+    margin-left: 1rem;
+}

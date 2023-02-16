@@ -32,6 +32,7 @@ namespace BlazorBlog.Services.ArticleService
                     (
                         await dataContext.Articles
                         .Where(a => a.IsPublished && !a.IsDeleted)
+                        .OrderByDescending(a => a.DateCreated)
                         .ToListAsync()
                     );
 
@@ -64,7 +65,9 @@ namespace BlazorBlog.Services.ArticleService
 
                 var result = _mapper.Map<List<ArticleDto>>
                     (
-                        await dataContext.Articles.ToListAsync()
+                        await dataContext.Articles
+                        .OrderByDescending(a => a.DateCreated)
+                        .ToListAsync()
                     );
 
                 if (result == null)

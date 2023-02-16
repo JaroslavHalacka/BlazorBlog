@@ -7,6 +7,7 @@ namespace BlazorBlog.Dtos
         public int Id { get; set; }
         [Required, StringLength(20, ErrorMessage = "Please use only 20 characters.")]
         public string Url { get; set; } = string.Empty;
+        [Required, StringLength(25, ErrorMessage = "Please use only 20 characters.")]
         public string NameForMenu { get; set; } = null!;
         [Required, StringLength(50, ErrorMessage = "Please use only 50 characters.")]
         public string Title { get; set; } = string.Empty;
