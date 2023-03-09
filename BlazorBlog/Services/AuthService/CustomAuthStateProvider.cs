@@ -18,8 +18,11 @@ namespace BlazorBlog.Services.AuthService
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            string authToken = await _localStorageService.GetItemAsStringAsync("authToken");
+            
+           string authToken = await _localStorageService.GetItemAsStringAsync("authToken");
+                        
             var identity = new ClaimsIdentity();
+            
             
             if (!string.IsNullOrEmpty(authToken))
             {

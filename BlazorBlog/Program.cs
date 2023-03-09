@@ -41,6 +41,7 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

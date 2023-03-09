@@ -193,7 +193,7 @@ namespace BlazorBlog.Services.CategoryService
             var result = _mapper.Map<List<CategorySiteMenuDto>>
             (
                 await dataContext.Categories
-                .Include(c => c.Articles)
+                   .Include(c => c.Articles)
                 .Where(c => c.IsVisible && !c.IsDeleted)
                 .ToListAsync()
             );
